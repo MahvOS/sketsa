@@ -1,66 +1,309 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Sparkles, 
+  ChevronRight, 
+  ChevronLeft, 
+  RefreshCcw, 
+  Settings2, 
+  BookOpen, 
+  LayoutGrid 
+} from 'lucide-react';
+
+const JUZ_START = {
+  1: [1, 1], 2: [2, 142], 3: [2, 253], 4: [3, 93], 5: [4, 24], 6: [4, 148],
+  7: [5, 82], 8: [6, 111], 9: [7, 88], 10: [8, 41], 11: [9, 93], 12: [11, 6],
+  13: [12, 53], 14: [15, 1], 15: [17, 1], 16: [18, 75], 17: [21, 1], 18: [23, 1],
+  19: [25, 21], 20: [27, 56], 21: [29, 46], 22: [33, 31], 23: [36, 28],
+  24: [39, 32], 25: [41, 47], 26: [46, 1], 27: [51, 31], 28: [58, 1],
+  29: [67, 1], 30: [78, 1]
+};
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+  const [quranData, setQuranData] = useState(null);
+  const [currentVerse, setCurrentVerse] = useState(null);
+  const [currentPool, setCurrentPool] = useState([]);
+  const [mode, setMode] = useState('juz');
+  const [loading, setLoading] = useState(true);
+  
+  // Settings
+  const [startJuz, setStartJuz] = useState(1);
+  const [endJuz, setEndJuz] = useState(30);
+  const [startSurah, setStartSurah] = useState(1);
+  const [endSurah, setEndSurah] = useState(114);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await fetch('/data/quran.json');
+        const rawData = await response.json();
+        const data = {};
+        rawData.surahs.forEach(s => {
+          data[s.number] = {
+            name: s.name,
+            englishName: s.englishName,
+            verses: s.ayahs
+          };
+        });
+        setQuranData(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error loading Quran data:', error);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const getVersesInJuzRange = useCallback((start, end) => {
+    if (!quranData) return [];
+    const verses = [];
+    for (let juz = start; juz <= end; juz++) {
+      const [sStart, aStart] = JUZ_START[juz];
+      const sEnd = juz < 30 ? JUZ_START[juz + 1][0] : 114;
+      const aEnd = juz < 30 ? JUZ_START[juz + 1][1] - 1 : 999;
+
+      for (let s = sStart; s <= sEnd; s++) {
+        const ayahs = quranData[s].verses;
+        const startIdx = s === sStart ? aStart : 1;
+        const endIdx = s === sEnd ? aEnd : ayahs.length;
+        
+        for (let a = startIdx; a <= Math.min(endIdx, ayahs.length); a++) {
+          verses.push([s, a]);
+        }
+      }
+    }
+    return verses;
+  }, [quranData]);
+
+  const getVersesInSurahRange = useCallback((start, end) => {
+    if (!quranData) return [];
+    const verses = [];
+    for (let s = start; s <= end; s++) {
+      const ayahs = quranData[s].verses;
+      for (let a = 1; a <= ayahs.length; a++) {
+        verses.push([s, a]);
+      }
+    }
+    return verses;
+  }, [quranData]);
+
+  const generateSoal = useCallback(() => {
+    let pool = [];
+    if (mode === 'juz') {
+      pool = getVersesInJuzRange(startJuz, endJuz);
+    } else {
+      pool = getVersesInSurahRange(startSurah, endSurah);
+    }
+
+    if (pool.length === 0) return;
+
+    setCurrentPool(pool);
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const [sNum, aNum] = pool[randomIndex];
+    displayVerse(sNum, aNum, pool);
+  }, [mode, startJuz, endJuz, startSurah, endSurah, getVersesInJuzRange, getVersesInSurahRange]);
+
+  const displayVerse = (sNum, aNum, pool) => {
+    const surah = quranData[sNum];
+    const ayah = surah.verses[aNum - 1];
+    setCurrentVerse({ 
+      surahNum: sNum, 
+      ayahNum: aNum, 
+      text: ayah.text,
+      surahName: surah.name,
+      englishName: surah.englishName
+    });
+  };
+
+  const showNext = () => {
+    if (!currentVerse || !currentPool.length) return;
+    const idx = currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum);
+    if (idx < currentPool.length - 1) {
+      const [s, a] = currentPool[idx + 1];
+      displayVerse(s, a, currentPool);
+    }
+  };
+
+  const showPrev = () => {
+    if (!currentVerse || !currentPool.length) return;
+    const idx = currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum);
+    if (idx > 0) {
+      const [s, a] = currentPool[idx - 1];
+      displayVerse(s, a, currentPool);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        generateSoal();
+      } else if (e.key === 'ArrowRight') {
+        showNext();
+      } else if (e.key === 'ArrowLeft') {
+        showPrev();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [generateSoal, currentVerse, currentPool]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <motion.div 
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+          className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full"
         />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-12">
+      <header className="header-centered mb-16">
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-5xl  mb-4"
+        >
+          Sketsa Practice
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-slate-500 font-medium tracking-widest uppercase text-sm"
+        >
+          ts pmo gng
+        </motion.p>
+      </header>
+
+      <div className="compact-app-layout">
+      {/* Sidebar Settings (Left) */}
+      <motion.aside 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="compact-sidebar"
+      >
+        <div className="sidebar-card">
+          <div className="sidebar-header">
+            <Settings2 size={18} className="text-indigo-500" />
+            <h2 className="text-sm font-bold uppercase tracking-widest">Setting</h2>
+          </div>
+
+          <div className="sidebar-content">
+            <div className="sidebar-group">
+              <label className="sidebar-label">Mode</label>
+              <div className="compact-mode-toggle">
+                <button 
+                  onClick={() => setMode('juz')}
+                  className={mode === 'juz' ? 'active' : ''}
+                >
+                  Juz
+                </button>
+                <button 
+                  onClick={() => setMode('surah')}
+                  className={mode === 'surah' ? 'active' : ''}
+                >
+                  Surat
+                </button>
+              </div>
+            </div>
+
+            <div className="sidebar-group">
+              <label className="sidebar-label">Rentang</label>
+              {mode === 'juz' ? (
+                <div className="compact-select-stack">
+                  <select value={startJuz} onChange={(e) => setStartJuz(parseInt(e.target.value))}>
+                    {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>Juz {i+1}</option>)}
+                  </select>
+                  <select value={endJuz} onChange={(e) => setEndJuz(parseInt(e.target.value))}>
+                    {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>Juz {i+1}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <div className="compact-select-stack">
+                  <select value={startSurah} onChange={(e) => setStartSurah(parseInt(e.target.value))}>
+                    {Object.keys(quranData).map(num => <option key={num} value={num}>{num}. {quranData[num].englishName}</option>)}
+                  </select>
+                  <select value={endSurah} onChange={(e) => setEndSurah(parseInt(e.target.value))}>
+                    {Object.keys(quranData).map(num => <option key={num} value={num}>{num}. {quranData[num].englishName}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={generateSoal}
+              className="compact-generate-btn"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
+              <Sparkles size={16} />
+              Generate Soal
+            </button>
+          </div>
+          
+          <div className="sidebar-footer">
+            <div className="hotkey-item"><kbd>Space</kbd> Baru</div>
+            <div className="hotkey-item"><kbd>←</kbd> <kbd>→</kbd> Nav</div>
+          </div>
+        </div>
+      </motion.aside>
+
+      {/* Main Display (Right) */}
+      <main className="compact-main">
+        <AnimatePresence mode="wait">
+          {currentVerse ? (
+            <motion.div 
+              key={`${currentVerse.surahNum}-${currentVerse.ayahNum}`}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              className="compact-verse-card"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              <div className="compact-meta">
+                <span className="meta-text">{currentVerse.englishName}</span>
+                <span className="meta-dot">•</span>
+                <span className="meta-text">{currentVerse.surahNum}:{currentVerse.ayahNum}</span>
+                <span className="meta-dot">•</span>
+                <span className="meta-arabic">{currentVerse.surahName}</span>
+              </div>
+
+              <div className="compact-arabic-text">
+                {currentVerse.text}
+              </div>
+
+              <div className="compact-nav-bar">
+                <button 
+                  onClick={showPrev}
+                  disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) <= 0}
+                  className="nav-arrow-btn"
+                >
+                  <ChevronLeft size={24} />
+                  <span>Ayat Sebelumnya</span>
+                </button>
+                <button 
+                  onClick={showNext}
+                  disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) >= currentPool.length - 1}
+                  className="nav-arrow-btn"
+                >
+                  <span>Ayat Selanjutnya</span>
+                  <ChevronRight size={24} />
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="compact-empty">
+              <BookOpen size={48} strokeWidth={1} className="text-slate-200 mb-4" />
+              <p>Pilih rentang dan tekan Generate untuk memulai</p>
+            </div>
+          )}
+        </AnimatePresence>
       </main>
+    </div>
     </div>
   );
 }
