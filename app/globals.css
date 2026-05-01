@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&family=Outfit:wght@300;400;500;600;700&display=swap");
 
 :root {
   --primary: #6366f1;
@@ -6,8 +6,8 @@
   --text: #1e293b;
   --text-muted: #64748b;
   --border: #f1f5f9;
-  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
-  --font-arabic: 'Amiri', serif;
+  --font-sans: "Outfit", "Inter", system-ui, sans-serif;
+  --font-arabic: "Amiri", serif;
 }
 
 * {
@@ -210,8 +210,14 @@ kbd {
   text-transform: uppercase;
 }
 
-.meta-dot { color: #e2e8f0; }
-.meta-arabic { font-family: var(--font-arabic); font-size: 1.125rem; text-transform: none; }
+.meta-dot {
+  color: #e2e8f0;
+}
+.meta-arabic {
+  font-family: var(--font-arabic);
+  font-size: 1.125rem;
+  text-transform: none;
+}
 
 .compact-arabic-text {
   font-family: var(--font-arabic);
@@ -222,8 +228,12 @@ kbd {
 }
 
 @media (max-width: 640px) {
-  .compact-arabic-text { font-size: 2.25rem; }
-  .compact-verse-card { padding: 1.5rem; }
+  .compact-arabic-text {
+    font-size: 2.25rem;
+  }
+  .compact-verse-card {
+    padding: 1.5rem;
+  }
 }
 
 .compact-nav-bar {
