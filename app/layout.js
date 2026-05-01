@@ -3,7 +3,7 @@ import "./globals.css";
 export const metadata = {
   title: "Sketsaa IDN",
   description:
-    "Aplikasi pembantu hafalan Al-Quran modern untuk persiapan UAS Tahfidz.",
+    "Tahfidz anying.",
 };
 
 export default function RootLayout({ children }) {
