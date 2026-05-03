@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Sparkles, 
-  ChevronRight, 
-  ChevronLeft, 
-  RefreshCcw, 
-  Settings2, 
-  BookOpen 
+import {
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  RefreshCcw,
+  Settings2,
+  BookOpen
 } from 'lucide-react';
 
 const JUZ_START = {
@@ -26,7 +26,7 @@ export default function Home() {
   const [currentPool, setCurrentPool] = useState([]);
   const [mode, setMode] = useState('juz');
   const [loading, setLoading] = useState(true);
-  
+
   const [startJuz, setStartJuz] = useState(1);
   const [endJuz, setEndJuz] = useState(30);
   const [startSurah, setStartSurah] = useState(1);
@@ -66,7 +66,7 @@ export default function Home() {
         const ayahs = quranData[s].verses;
         const startIdx = s === sStart ? aStart : 1;
         const endIdx = s === sEnd ? aEnd : ayahs.length;
-        
+
         for (let a = startIdx; a <= Math.min(endIdx, ayahs.length); a++) {
           verses.push([s, a]);
         }
@@ -106,9 +106,9 @@ export default function Home() {
   const displayVerse = (sNum, aNum, pool) => {
     const surah = quranData[sNum];
     const ayah = surah.verses[aNum - 1];
-    setCurrentVerse({ 
-      surahNum: sNum, 
-      ayahNum: aNum, 
+    setCurrentVerse({
+      surahNum: sNum,
+      ayahNum: aNum,
       text: ayah.text,
       surahName: surah.name,
       englishName: surah.englishName
@@ -151,7 +151,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <motion.div 
+        <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
           className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full"
@@ -163,14 +163,14 @@ export default function Home() {
   return (
     <div className="app-container">
       <header className="header-centered">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className=""
         >
           Sketsa Practice
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -181,7 +181,7 @@ export default function Home() {
       </header>
 
       <div className="compact-app-layout">
-        <motion.aside 
+        <motion.aside
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           className="compact-sidebar"
@@ -189,7 +189,7 @@ export default function Home() {
           <div className="sidebar-card">
             <div className="sidebar-header">
               <Settings2 size={18} className="text-indigo-500" />
-              <h2 className="text-xs font-bold uppercase tracking-widest">Konfigurasi</h2>
+              <h2 className="text-xs font-bold uppercase tracking-widest">Setting</h2>
             </div>
 
             <div className="sidebar-content">
@@ -207,10 +207,10 @@ export default function Home() {
                   {mode === 'juz' ? (
                     <>
                       <select value={startJuz} onChange={(e) => setStartJuz(parseInt(e.target.value))}>
-                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>Juz {i+1}</option>)}
+                        {[...Array(30)].map((_, i) => <option key={i + 1} value={i + 1}>Juz {i + 1}</option>)}
                       </select>
                       <select value={endJuz} onChange={(e) => setEndJuz(parseInt(e.target.value))}>
-                        {[...Array(30)].map((_, i) => <option key={i+1} value={i+1}>Juz {i+1}</option>)}
+                        {[...Array(30)].map((_, i) => <option key={i + 1} value={i + 1}>Juz {i + 1}</option>)}
                       </select>
                     </>
                   ) : (
@@ -231,7 +231,7 @@ export default function Home() {
                 Generate Soal
               </button>
             </div>
-            
+
             <div className="sidebar-footer hide-mobile">
               <div className="hotkey-item"><kbd>Space</kbd> Baru</div>
               <div className="hotkey-item"><kbd>←</kbd> <kbd>→</kbd> Nav</div>
@@ -242,7 +242,7 @@ export default function Home() {
         <main className="compact-main">
           <AnimatePresence mode="wait">
             {currentVerse ? (
-              <motion.div 
+              <motion.div
                 key={`${currentVerse.surahNum}-${currentVerse.ayahNum}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -262,7 +262,7 @@ export default function Home() {
                 </div>
 
                 <div className="compact-nav-bar hide-mobile">
-                  <button 
+                  <button
                     onClick={showPrev}
                     disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) <= 0}
                     className="nav-arrow-btn"
@@ -270,7 +270,7 @@ export default function Home() {
                     <ChevronLeft size={24} />
                     <span>Ayat Sebelumnya</span>
                   </button>
-                  <button 
+                  <button
                     onClick={showNext}
                     disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) >= currentPool.length - 1}
                     className="nav-arrow-btn"
@@ -291,15 +291,15 @@ export default function Home() {
       </div>
 
       <div className="mobile-action-bar">
-        <button 
+        <button
           onClick={showPrev}
           disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) <= 0}
           className="mobile-nav-btn"
         >
           <ChevronLeft size={24} />
-          <span>Prev</span>
+          <span>Sebelumnya/span>
         </button>
-        
+
         <button onClick={generateSoal} className="mobile-center-btn">
           <div className="btn-inner">
             <RefreshCcw size={24} />
@@ -307,7 +307,7 @@ export default function Home() {
           <span>Acak</span>
         </button>
 
-        <button 
+        <button
           onClick={showNext}
           disabled={!currentVerse || currentPool.findIndex(v => v[0] === currentVerse.surahNum && v[1] === currentVerse.ayahNum) >= currentPool.length - 1}
           className="mobile-nav-btn"
