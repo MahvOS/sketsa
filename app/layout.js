@@ -1,9 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Sketsaa IDN",
+  title: "Sketsaa IDN - By Mahv",
   description:
-    "y.",
+    "This might be the future.",
 };
 
 export default function RootLayout({ children }) {

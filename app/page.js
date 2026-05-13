@@ -297,7 +297,7 @@ export default function Home() {
           className="mobile-nav-btn"
         >
           <ChevronLeft size={24} />
-          <span>Sebelumnya/span>
+          <span>Prev</span>
         </button>
 
         <button onClick={generateSoal} className="mobile-center-btn">
