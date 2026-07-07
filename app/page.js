@@ -224,7 +224,7 @@ export default function Home() {
           transition={{ delay: 0.2 }}
           className="text-slate-400 font-bold tracking-widest uppercase text-xs mt-2"
         >
-          ts pmo gng
+          yg menting sketsa
         </motion.p>
       </header>
 
